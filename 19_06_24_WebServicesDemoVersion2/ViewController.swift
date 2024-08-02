@@ -11,6 +11,7 @@ import SDWebImage
 class ViewController: UIViewController {
 
     @IBOutlet weak var imageView: UIImageView!
+    @IBOutlet weak var photosTableView: UITableView!
     
     var url : URL?
     var urlRequest : URLRequest?
@@ -19,8 +20,20 @@ class ViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        initializeViews()
+        registerCellWithTableView()
         parseJSON()
         //bindImages()
+    }
+    
+    private func registerCellWithTableView(){
+        let uiNib = UINib(nibName: Constants.reuseIdentifierForPhotoTableViewCell, bundle: nil)
+        photosTableView.register(uiNib, forCellReuseIdentifier: Constants.reuseIdentifierForPhotoTableViewCell)
+    }
+    
+    private func initializeViews(){
+        photosTableView.delegate = self
+        photosTableView.dataSource = self
     }
     
     private func bindImages(){
@@ -49,10 +62,41 @@ class ViewController: UIViewController {
                 self.photos.append(Photo(albumId: eachPhotoAlbumId, id: eachId, title: eachPhotoTitle, url: eachPhotoURL, thumbnailUrl: eachPhotoThumbnailURL))
             }
             
+            DispatchQueue.main.async {
+                self.photosTableView.reloadData()
+            }
+            
             print(self.photos)
         })
-        
         photosDataTask?.resume()
+    }
+}
+
+extension ViewController : UITableViewDataSource{
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        photos.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let photoTableViewCell = self.photosTableView.dequeueReusableCell(withIdentifier: "PhotoTableViewCell", for: indexPath) as! PhotoTableViewCell
         
+        //binding imageUrl with imageView by using SDWebImage pod.
+        photoTableViewCell.photoImageView.sd_setImage(with:URL(string: photos[indexPath.row].url), placeholderImage: UIImage(named:"test_image"))
+        
+        photoTableViewCell.albumIdLabel.text = String(photos[indexPath.row].albumId)
+        photoTableViewCell.idLabel.text = String(photos[indexPath.row].id)
+        photoTableViewCell.titleLabel.text = photos[indexPath.row].title
+        
+        photoTableViewCell.albumIdLabel.backgroundColor = .lightGray
+        photoTableViewCell.idLabel.backgroundColor = .lightGray
+        photoTableViewCell.titleLabel.backgroundColor = .lightGray
+        
+        return photoTableViewCell
+    }
+}
+
+extension ViewController : UITableViewDelegate{
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 137.0
     }
 }

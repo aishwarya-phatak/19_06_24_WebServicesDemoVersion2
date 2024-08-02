@@ -8,4 +8,5 @@
 import Foundation
 struct Constants{
     static let photosUrl = "https://jsonplaceholder.typicode.com/photos"
+    static let reuseIdentifierForPhotoTableViewCell = "PhotoTableViewCell"    
 }
